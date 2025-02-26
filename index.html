@@ -76,7 +76,7 @@
         <!-- Botón que redirige a la vista "Premio" -->
         <div class="mt-4">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                CARGAR PREMIO
+                CALCULAR PREMIO
             </button>
 
             <!-- Modal -->
@@ -106,28 +106,131 @@
                             <br>
                             <div class="col-4">
                                 <b>TOTAL DE PREMIOS</b>
-                                <input type="number" class="form-control calculosPremios " id="totalPremio" placeholder="000">
+                                <input type="number" class="form-control calculosPremios " id="totalPremio"
+                                    placeholder="000">
                             </div>
                             <br>
                             <b>CANTIDAD DE BOLETAS</b>
                             <div class="col-4">
-
                                 <input type="number" class="form-control " id="CantidadBoletas" placeholder="000">
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">CANCELAR</button>
-                            <button type="button" class="btn btn-primary">GUARDAR TOTAL</button>
-                        </div>
+
                     </div>
                 </div>
             </div>
+           
         </div>
+        <b>BOLETAS PREMIADAS</b>
+        <div class="col-2">
+            <input type="number" class="form-control " id="CantiBoletas" placeholder="000">
+        </div>
+
+
+        <!-- Botón que redirige a la vista "CANCELADA" -->
+        <div class="mt-4">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                CALCULAR CANCELACION
+            </button>
+
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">CANCELACIONES</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <b>CODIGO</b>
+                                    <input type="number" class="form-control input-codigocancelacion" placeholder="000">
+                                </div>
+                                <br>
+                                <br>
+                                <div class="col-4">
+                                    <b>CANCELACION</b>
+                                    <input type="number" class="form-control input-cancelacion" placeholder="000">
+                                </div>
+                                <br>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="regisboleta2">REGISTRAR</button>
+                            <br>
+                            <br>
+                            <div class="col-4">
+                                <b>TOTAL DE CANCELACIONES</b>
+                                <input type="number" class="form-control calculoscancelacion " id="totalCancelacion"
+                                    placeholder="000">
+                            </div>
+                            <br>
+                            <b>CANTIDAD DE BOLETAS</b>
+                            <div class="col-4">
+                                <input type="number" class="form-control " id="CantidadBoletas2" placeholder="000">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <b>BOLETAS CANCELADAS</b>
+        <div class="col-2">
+            <input type="number" class="form-control " id="CantidadBoletas3" placeholder="000">
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button type="button" class="btn btn-primary">GUARDAR TOTAL</button>
+        </div>
+
+
+
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
     <script>
+        let listadoBoletas = [];
+        let listadocancelacion = [];
+
+        function exportarExcel() {
+          
+
+            // Supongamos que tienes dos arrays: dataPremios y dataCancelacion
+            let wsPremios = XLSX.utils.json_to_sheet(listadoBoletas);
+            let wsCancelacion = XLSX.utils.json_to_sheet(listadocancelacion);
+
+            // Cambiar el ancho de las columnas en la hoja de premios:
+            // Por ejemplo, la primera columna con ancho 20 caracteres y la segunda con 25
+            wsPremios['!cols'] = [{ wch: 20 }, { wch: 25 }];
+
+            // Si deseas reescribir los encabezados:
+            XLSX.utils.sheet_add_aoa(wsPremios, [["Código", "Premio"]], { origin: "A1" });
+
+            // Para la hoja de cancelación, por ejemplo:
+            wsCancelacion['!cols'] = [{ wch: 15 }, { wch: 18 }];
+            XLSX.utils.sheet_add_aoa(wsCancelacion, [["Código", "Cancelación"]], { origin: "A1" });
+
+            // Agrega la hoja al libro, con el nombre que prefieras (por ejemplo "Boletas")
+            // XLSX.utils.book_append_sheet(workbook, worksheet, "Boletas");
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, wsPremios, "Premios");
+            XLSX.utils.book_append_sheet(wb, wsCancelacion, "Cancelación");
+
+            // Genera y descarga el archivo Excel
+            XLSX.writeFile(wb, "boletas.xlsx");
+        }
+
+        // Puedes vincular esta función a un botón
+        $('#exportarExcel').on('click', exportarExcel);
+
+
         function recalcular() {
             let suma = 0;
             // Sumar los valores de los 5 inputs
@@ -145,29 +248,55 @@
 
 
         $(document).ready(function () {
-            let calculosPremios = [];
+
 
             $('.num-input, #premios').on('input', recalcular);
 
             $('#regisboleta').on('click', function () {
-                const ValorPremio = parseFloat($('.input-premio').val()) || 0;
-                calculosPremios.push(ValorPremio)
-                $('.input-premio').val(0)
-                $('.input-codigo').val(0)
+                // Obtén los valores de los inputs y conviértelos a los tipos deseados.
+                const premio = parseFloat($('.input-premio').val()) || 0;
+                const codigo = $('.input-codigo').val(); // O parsearlo a número, según corresponda
 
-                let suma = 0;
-                for (let i = 0; i < calculosPremios.length; i++) {
-                    suma += calculosPremios[i];
-                }
+                // Crea un objeto que represente la boleta.
+                let boleta = {
+                    codigo: codigo,
+                    premio: premio
+                };
 
-                $(".calculosPremios").val(suma)
-                $('#CantidadBoletas').val(calculosPremios.length)
-                
+                // Agrega el objeto al listado.
+                listadoBoletas.push(boleta);
 
-            })
+                // Limpia los inputs (o restablécelos según tus necesidades)
+                $('.input-premio').val(0);
+                $('.input-codigo').val(0);
 
+                // Actualiza la suma y la cantidad, si es necesario.
+                let suma = listadoBoletas.reduce((total, item) => total + item.premio, 0);
+                $(".calculosPremios").val(suma);
+                $('#CantidadBoletas').val(listadoBoletas.length);
+                $('#CantiBoletas').val(listadoBoletas.length);
+            });
 
+            $('#regisboleta2').on('click', function () {
+                const cancelacion = parseFloat($('.input-cancelacion').val()) || 0;
+                const codigo2 = $('.input-codigocancelacion').val();
 
+                let bolecance = {
+                    codigo2: codigo2,
+                    cancelacion: cancelacion
+                };
+
+                listadocancelacion.push(bolecance);
+
+                $('.input-cancelacion').val(0);
+                $('.input-codigocancelacion').val(0);
+
+                let suma2 = listadocancelacion.reduce((total, item) => total + item.cancelacion, 0);
+                $(".calculoscancelacion").val(suma2);
+                $('#CantidadBoletas2').val(listadocancelacion.length);
+                $('#CantidadBoletas3').val(listadocancelacion.length);
+
+            });
 
 
         });
